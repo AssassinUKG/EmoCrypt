@@ -1,0 +1,40 @@
+{
+  "name": "emocrypt",
+  "version": "1.0.0",
+  "description": "A fun and educational tool that encodes text into emoji using nibble mapping, with optional cryptographic features.",
+  "main": "emocrypt.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "demo": "node demo.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AssassinUKG/EmoCrypt.git"
+  },
+  "keywords": [
+    "emoji",
+    "encoding",
+    "obfuscation",
+    "encryption",
+    "cryptography",
+    "steganography",
+    "javascript",
+    "educational"
+  ],
+  "author": "AssassinUKG (https://github.com/AssassinUKG)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/AssassinUKG/EmoCrypt/issues"
+  },
+  "homepage": "https://github.com/AssassinUKG/EmoCrypt#readme",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "files": [
+    "emocrypt.js",
+    "index.html",
+    "demo.js",
+    "README.md",
+    "LICENSE"
+  ]
+}

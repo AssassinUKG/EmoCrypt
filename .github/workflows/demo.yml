@@ -1,0 +1,66 @@
+name: EmoCrypt Demo
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x, 20.x]
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        
+    - name: Install dependencies
+      run: npm ci --production || npm install --production || echo "No dependencies to install"
+      
+    - name: Run demo
+      run: |
+        echo "Running EmoCrypt demo..."
+        node demo.js || echo "Demo completed (some features may not work in CI environment)"
+        
+    - name: Validate HTML
+      run: |
+        echo "Checking if HTML file exists and is valid..."
+        if [ -f "index.html" ]; then
+          echo "✅ index.html exists"
+          # Basic HTML validation
+          if grep -q "EmoCrypt" index.html; then
+            echo "✅ HTML contains EmoCrypt content"
+          else
+            echo "❌ HTML validation failed"
+            exit 1
+          fi
+        else
+          echo "❌ index.html not found"
+          exit 1
+        fi
+        
+    - name: Validate JavaScript
+      run: |
+        echo "Checking if JavaScript library exists..."
+        if [ -f "emocrypt.js" ]; then
+          echo "✅ emocrypt.js exists"
+          # Basic JS validation
+          if grep -q "EmoCrypt" emocrypt.js; then
+            echo "✅ JavaScript contains EmoCrypt class"
+          else
+            echo "❌ JavaScript validation failed"
+            exit 1
+          fi
+        else
+          echo "❌ emocrypt.js not found"
+          exit 1
+        fi

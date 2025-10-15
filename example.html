@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EmoCrypt Library Example</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .example {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .code {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .output {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            word-break: break-all;
+        }
+        button {
+            background: #4299e1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #3182ce;
+        }
+        input {
+            padding: 8px;
+            border: 1px solid #cbd5e0;
+            border-radius: 4px;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔐🎲 EmoCrypt Library Examples</h1>
+    
+    <div class="example">
+        <h2>1. Basic Usage</h2>
+        <div class="code">
+const text = "Hello World!";<br>
+const encoded = emojiEncode(text);<br>
+const decoded = emojiDecode(encoded);<br>
+console.log({ text, encoded, decoded });
+        </div>
+        <button onclick="runBasicExample()">Run Example</button>
+        <div id="basic-output" class="output"></div>
+    </div>
+
+    <div class="example">
+        <h2>2. With Passphrase</h2>
+        <div class="code">
+const crypto = new EmoCrypt("myPassphrase");<br>
+const encoded = crypto.encode("Secret message");<br>
+const decoded = crypto.decode(encoded);
+        </div>
+        <input type="text" id="passphrase" placeholder="Enter passphrase" value="myPassphrase">
+        <input type="text" id="secret-text" placeholder="Enter text" value="Secret message">
+        <button onclick="runPassphraseExample()">Run Example</button>
+        <div id="passphrase-output" class="output"></div>
+    </div>
+
+    <div class="example">
+        <h2>3. Interactive Encoder/Decoder</h2>
+        <textarea id="input-text" rows="3" cols="50" placeholder="Enter text to encode">The quick brown fox jumps over 13 lazy dogs.</textarea><br>
+        <input type="text" id="shuffle-pass" placeholder="Optional shuffle passphrase">
+        <br>
+        <button onclick="encodeText()">Encode →</button>
+        <button onclick="decodeText()">← Decode</button>
+        <button onclick="swapText()">↕ Swap</button>
+        <br>
+        <textarea id="output-text" rows="3" cols="50" placeholder="Output will appear here"></textarea>
+    </div>
+
+    <div class="example">
+        <h2>4. AES Encryption (Advanced)</h2>
+        <div class="code">
+const crypto = new EmoCrypt("shuffle-pass");<br>
+const encrypted = await crypto.encryptAndEncode(text, password);<br>
+const decrypted = await crypto.decryptAndDecode(encrypted, password);
+        </div>
+        <input type="text" id="aes-text" placeholder="Text to encrypt" value="Top secret data">
+        <input type="password" id="aes-password" placeholder="Password" value="myPassword123">
+        <input type="text" id="aes-shuffle" placeholder="Optional shuffle passphrase">
+        <br>
+        <button onclick="runAESExample()">Encrypt & Encode</button>
+        <button onclick="decryptAESExample()">Decrypt & Decode</button>
+        <div id="aes-output" class="output"></div>
+    </div>
+
+    <script src="emocrypt.js"></script>
+    <script>
+        function runBasicExample() {
+            const text = "Hello World!";
+            const encoded = emojiEncode(text);
+            const decoded = emojiDecode(encoded);
+            
+            document.getElementById('basic-output').innerHTML = `
+                <strong>Original:</strong> ${text}<br>
+                <strong>Encoded:</strong> ${encoded}<br>
+                <strong>Decoded:</strong> ${decoded}<br>
+                <strong>Match:</strong> ${text === decoded ? '✅' : '❌'}
+            `;
+        }
+
+        function runPassphraseExample() {
+            const passphrase = document.getElementById('passphrase').value;
+            const text = document.getElementById('secret-text').value;
+            
+            const crypto = new EmoCrypt(passphrase);
+            const encoded = crypto.encode(text);
+            const decoded = crypto.decode(encoded);
+            
+            // Compare with no passphrase
+            const encodedNoPass = emojiEncode(text);
+            
+            document.getElementById('passphrase-output').innerHTML = `
+                <strong>Original:</strong> ${text}<br>
+                <strong>With passphrase:</strong> ${encoded}<br>
+                <strong>Without passphrase:</strong> ${encodedNoPass}<br>
+                <strong>Decoded:</strong> ${decoded}<br>
+                <strong>Different encoding:</strong> ${encoded !== encodedNoPass ? '✅' : '❌'}
+            `;
+        }
+
+        function encodeText() {
+            const text = document.getElementById('input-text').value;
+            const passphrase = document.getElementById('shuffle-pass').value;
+            
+            let encoded;
+            if (passphrase) {
+                const crypto = new EmoCrypt(passphrase);
+                encoded = crypto.encode(text);
+            } else {
+                encoded = emojiEncode(text);
+            }
+            
+            document.getElementById('output-text').value = encoded;
+        }
+
+        function decodeText() {
+            const encoded = document.getElementById('input-text').value;
+            const passphrase = document.getElementById('shuffle-pass').value;
+            
+            try {
+                let decoded;
+                if (passphrase) {
+                    const crypto = new EmoCrypt(passphrase);
+                    decoded = crypto.decode(encoded);
+                } else {
+                    decoded = emojiDecode(encoded);
+                }
+                
+                document.getElementById('output-text').value = decoded;
+            } catch (error) {
+                document.getElementById('output-text').value = 'Error: ' + error.message;
+            }
+        }
+
+        function swapText() {
+            const input = document.getElementById('input-text');
+            const output = document.getElementById('output-text');
+            const temp = input.value;
+            input.value = output.value;
+            output.value = temp;
+        }
+
+        let lastEncrypted = '';
+
+        async function runAESExample() {
+            try {
+                const text = document.getElementById('aes-text').value;
+                const password = document.getElementById('aes-password').value;
+                const shuffle = document.getElementById('aes-shuffle').value;
+                
+                const crypto = new EmoCrypt(shuffle || null);
+                const encrypted = await crypto.encryptAndEncode(text, password);
+                lastEncrypted = encrypted;
+                
+                document.getElementById('aes-output').innerHTML = `
+                    <strong>Original:</strong> ${text}<br>
+                    <strong>Encrypted:</strong> ${encrypted.substring(0, 100)}${encrypted.length > 100 ? '...' : ''}<br>
+                    <strong>Length:</strong> ${encrypted.length} characters<br>
+                    <em>Use "Decrypt & Decode" to reverse this process</em>
+                `;
+            } catch (error) {
+                document.getElementById('aes-output').innerHTML = `<strong>Error:</strong> ${error.message}`;
+            }
+        }
+
+        async function decryptAESExample() {
+            try {
+                const password = document.getElementById('aes-password').value;
+                const shuffle = document.getElementById('aes-shuffle').value;
+                
+                if (!lastEncrypted) {
+                    document.getElementById('aes-output').innerHTML = '<strong>Error:</strong> No encrypted data available. Run "Encrypt & Encode" first.';
+                    return;
+                }
+                
+                const crypto = new EmoCrypt(shuffle || null);
+                const decrypted = await crypto.decryptAndDecode(lastEncrypted, password);
+                
+                document.getElementById('aes-output').innerHTML = `
+                    <strong>Encrypted:</strong> ${lastEncrypted.substring(0, 50)}...<br>
+                    <strong>Decrypted:</strong> ${decrypted}<br>
+                    <strong>Success:</strong> ✅
+                `;
+            } catch (error) {
+                document.getElementById('aes-output').innerHTML = `<strong>Error:</strong> ${error.message}`;
+            }
+        }
+
+        // Initialize with basic example
+        runBasicExample();
+    </script>
+</body>
+</html>

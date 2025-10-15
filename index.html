@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EmoCrypt — Emoji Obfuscator</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--muted:#94a3b8;--accent:#7c3aed}
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial}
+    body{background:linear-gradient(180deg,#071024 0%,#07152a 60%);color:#e6eef8;display:flex;align-items:center;justify-content:center;padding:24px}
+    .wrap{width:100%;max-width:980px}
+    header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+    h1{margin:0;font-size:20px}
+    .card{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 8px 30px rgba(2,6,23,.6)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    textarea{width:100%;height:160px;background:#061426;border:1px solid rgba(255,255,255,.03);color:inherit;padding:12px;border-radius:8px;resize:vertical}
+    label{font-size:13px;color:var(--muted)}
+    .row{display:flex;gap:8px;align-items:center}
+    button{background:var(--accent);border:0;padding:8px 12px;border-radius:8px;color:white;cursor:pointer}
+    .muted{color:var(--muted);font-size:13px}
+    .small{font-size:12px;color:var(--muted)}
+    .controls{display:flex;gap:8px;flex-wrap:wrap}
+    .chip{background:#061722;padding:6px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.03)}
+    .output{white-space:pre-wrap;word-break:break-word;background:#071827;border-radius:8px;padding:12px;min-height:100px}
+    footer{margin-top:12px;color:var(--muted);font-size:13px}
+    .top-actions{margin-left:auto;display:flex;gap:8px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="font-size:28px">🔐🎲</div>
+        <div>
+          <h1>EmoCrypt — Emoji Obfuscator</h1>
+          <div class="small">Encode text into emoji nibbles. Options for passphrase shuffling and optional AES-GCM wrapping.</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button id="exampleBtn">Load Example</button>
+        <button id="clearBtn">Clear</button>
+      </div>
+    </header>
+
+    <div class="card">
+      <div class="grid">
+        <div>
+          <label>Plaintext / Input</label>
+          <textarea id="input" placeholder="Type or paste text here..."></textarea>
+
+          <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+            <div class="chip"><label class="small">Encoding scheme: emoji-nibble</label></div>
+            <div class="chip"><label class="small">Original idea: map hex nibble -> emoji</label></div>
+            <div class="muted" style="margin-left:auto">By default: deterministic mapping</div>
+          </div>
+
+          <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+            <button id="encBtn">Encode →</button>
+            <button id="decBtn">← Decode</button>
+            <button id="copyOut">Copy Output</button>
+            <button id="swapBtn">Swap In/Out</button>
+          </div>
+
+        </div>
+
+        <div>
+          <label>Options</label>
+          <div style="margin-top:8px;display:flex;flex-direction:column;gap:10px">
+
+            <div>
+              <label class="small">Shuffle emoji map with passphrase (deterministic)</label>
+              <div class="row" style="margin-top:6px">
+                <input id="shuffleCheckbox" type="checkbox" />
+                <input id="shufflePass" placeholder="passphrase (shuffle)" style="flex:1;padding:8px;border-radius:6px;background:#061426;border:1px solid rgba(255,255,255,.03);color:inherit" />
+              </div>
+              <div class="small">When enabled, the mapping order is shuffled using a seeded RNG derived from the passphrase.</div>
+            </div>
+
+            <div>
+              <label class="small">Optional: wrap output with AES-GCM (password)</label>
+              <div class="row" style="margin-top:6px">
+                <input id="wrapAES" type="checkbox" />
+                <input id="aesPass" placeholder="password (AES)" style="flex:1;padding:8px;border-radius:6px;background:#061426;border:1px solid rgba(255,255,255,.03);color:inherit" />
+              </div>
+              <div class="small">AES-GCM uses PBKDF2 to derive a key. This adds real cryptographic privacy if you need it.</div>
+            </div>
+
+            <div>
+              <label class="small">Output</label>
+              <div id="output" class="output"></div>
+            </div>
+
+            <div>
+              <label class="small">Notes</label>
+              <div class="small">This project is educational &amp; playful. The straight emoji-nibble mapping is obfuscation — not secure encryption. Use AES-GCM wrapping for real confidentiality.</div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div class="small">Quick commands:</div>
+          <div class="chip small">Save → open index.html</div>
+          <div class="chip small">Encode text → click Encode</div>
+          <div class="chip small">Decode → paste emoji text + Decode</div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(255,255,255,.05);padding-top:10px">
+          <div class="small">EmoCrypt v1.0 - Educational emoji obfuscation tool</div>
+          <div class="small">
+            Created by <a href="https://github.com/AssassinUKG" target="_blank" style="color:var(--accent);text-decoration:none">AssassinUKG</a>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // Base emoji set (16 entries = 4-bit nibble)
+  const BASE_EMO = [..."😀😁😂🤣😃😄😅😆😉😊😋😎😍😘🥰😗"];
+
+  // Text encoder/decoder
+  const te = new TextEncoder();
+  const td = new TextDecoder();
+
+  // Utility: create mapping and inverse map
+  function buildMaps(emojiArr) {
+    const encMap = new Map();
+    const decMap = new Map();
+    for (let i = 0; i < emojiArr.length; i++) {
+      encMap.set(i, emojiArr[i]);
+      decMap.set(emojiArr[i], i);
+    }
+    return { encMap, decMap };
+  }
+
+  // Seeded RNG helpers (xmur3 + mulberry32)
+  function xmur3(str) {
+    for (var i = 0, h = 1779033703 ^ str.length; i < str.length; i++) {
+      h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+      h = (h << 13) | (h >>> 19);
+    }
+    return function() {
+      h = Math.imul(h ^ (h >>> 16), 2246822507);
+      h = Math.imul(h ^ (h >>> 13), 3266489909);
+      return (h ^= h >>> 16) >>> 0;
+    };
+  }
+  function mulberry32(a) {
+    return function() {
+      var t = (a += 0x6D2B79F5);
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function seededShuffle(array, pass) {
+    const seed = xmur3(pass)();
+    const rnd = mulberry32(seed);
+    const out = array.slice();
+    for (let i = out.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      [out[i], out[j]] = [out[j], out[i]];
+    }
+    return out;
+  }
+
+  // Core encode / decode (emoji nibble mapping)
+  function emojiEncode(str, emojiArr) {
+    const { encMap } = buildMaps(emojiArr);
+    const bytes = Array.from(te.encode(str));
+    // map each byte into two emoji (high nibble, low nibble)
+    return bytes.map(b => encMap.get(b >> 4) + encMap.get(b & 15)).join('');
+  }
+
+  function emojiDecode(emojiStr, emojiArr) {
+    const { decMap } = buildMaps(emojiArr);
+    const chars = [...emojiStr];
+    const nibbles = chars.map(c => {
+      const v = decMap.get(c);
+      if (v === undefined) throw new Error('Unknown emoji encountered');
+      return v;
+    });
+    const out = new Uint8Array(nibbles.length / 2);
+    for (let i = 0, j = 0; i < nibbles.length; i += 2) {
+      out[j++] = (nibbles[i] << 4) | nibbles[i + 1];
+    }
+    return td.decode(out);
+  }
+
+  // WebCrypto AES-GCM helpers (password -> key via PBKDF2)
+  async function deriveKeyFromPassword(pass, salt) {
+    const pwUtf8 = new TextEncoder().encode(pass);
+    const baseKey = await crypto.subtle.importKey('raw', pwUtf8, { name: 'PBKDF2' }, false, ['deriveKey']);
+    return crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt: salt, iterations: 100_000, hash: 'SHA-256' },
+      baseKey,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['encrypt', 'decrypt']
+    );
+  }
+
+  async function aesEncrypt(plaintext, password) {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const key = await deriveKeyFromPassword(password, salt);
+    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(plaintext));
+    // return base64 with iv+salt prefix
+    const buf = new Uint8Array(salt.byteLength + iv.byteLength + ct.byteLength);
+    buf.set(salt, 0); buf.set(iv, salt.byteLength); buf.set(new Uint8Array(ct), salt.byteLength + iv.byteLength);
+    return btoa(String.fromCharCode(...buf));
+  }
+
+  async function aesDecrypt(b64, password) {
+    const raw = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+    const salt = raw.slice(0, 16);
+    const iv = raw.slice(16, 28);
+    const ct = raw.slice(28);
+    const key = await deriveKeyFromPassword(password, salt);
+    const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+    return new TextDecoder().decode(pt);
+  }
+
+  // DOM wiring
+  const $ = id => document.getElementById(id);
+  const input = $('input');
+  const output = $('output');
+  const encBtn = $('encBtn');
+  const decBtn = $('decBtn');
+  const copyOut = $('copyOut');
+  const shuffleCheckbox = $('shuffleCheckbox');
+  const shufflePass = $('shufflePass');
+  const wrapAES = $('wrapAES');
+  const aesPass = $('aesPass');
+  const exampleBtn = $('exampleBtn');
+  const clearBtn = $('clearBtn');
+  const swapBtn = $('swapBtn');
+
+  exampleBtn.addEventListener('click', () => {
+    input.value = 'The quick brown fox jumps over 13 lazy dogs.';
+  });
+  clearBtn.addEventListener('click', () => { input.value = ''; output.textContent = ''; });
+  copyOut.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(output.textContent); } catch(e) { alert('Clipboard failed'); }
+  });
+  swapBtn.addEventListener('click', () => { const t = input.value; input.value = output.textContent; output.textContent = t; });
+
+  encBtn.addEventListener('click', async () => {
+    try {
+      let emojiArr = BASE_EMO.slice();
+      if (shuffleCheckbox.checked && shufflePass.value) emojiArr = seededShuffle(emojiArr, shufflePass.value);
+      const encoded = emojiEncode(input.value, emojiArr);
+      if (wrapAES.checked && aesPass.value) {
+        const wrapped = await aesEncrypt(encoded, aesPass.value);
+        output.textContent = `AESv1:${wrapped}`;
+      } else {
+        output.textContent = encoded;
+      }
+    } catch (e) { output.textContent = 'Error: ' + e.message; }
+  });
+
+  decBtn.addEventListener('click', async () => {
+    try {
+      let inText = input.value.trim();
+      if (inText.startsWith('AESv1:')) {
+        if (!aesPass.value) throw new Error('AES password required for decryption');
+        inText = await aesDecrypt(inText.slice(6), aesPass.value);
+      }
+      let emojiArr = BASE_EMO.slice();
+      if (shuffleCheckbox.checked && shufflePass.value) emojiArr = seededShuffle(emojiArr, shufflePass.value);
+      const decoded = emojiDecode(inText, emojiArr);
+      output.textContent = decoded;
+    } catch (e) { output.textContent = 'Error: ' + e.message; }
+  });
+
+})();
+</script>
+</body>
+</html>
