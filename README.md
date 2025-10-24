@@ -2,7 +2,10 @@
 
 A fun and educational tool that encodes text into emoji using nibble mapping, with optional cryptographic features.
 
-![EmoCrypt Demo](https://via.placeholder.com/800x400/0f1724/7c3aed?text=EmoCrypt+Demo)
+<img width="878" height="549" alt="image" src="https://github.com/user-attachments/assets/903fd65e-c9e7-458c-aeb7-5f3d219f94fe" />
+
+
+[EmoCrypt Demo](https://AssassinUKG.github.io/EmoCrypt)
 
 ## 🌟 Features
 
